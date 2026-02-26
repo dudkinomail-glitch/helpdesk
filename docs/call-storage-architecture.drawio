@@ -1,0 +1,65 @@
+<mxfile host="app.diagrams.net" modified="2026-02-26T10:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="cdr-storage-3dc" name="CDR Storage 3DC">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Архитектура хранения CDR в 3 ЦОД (без аудиозаписей)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="420" y="20" width="1080" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="requirements" value="Требования&#xa;• Только CDR / метаданные&#xa;• 500 ГБ / 3 мес&#xa;• 3 года хранения&#xa;• Лимит: 3 ТБ на ВМ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="320" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="calc" value="Расчет CDR емкости&#xa;• ~166.7 ГБ/мес&#xa;• 36 мес = ~6 ТБ CDR&#xa;• +30% индексы/служебные = ~7.8 ТБ/ЦОД" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="380" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="retention" value="Retention CDR&#xa;• 0–12 мес: hot partitions&#xa;• 12–36 мес: warm partitions&#xa;• TTL delete > 36 мес" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="820" y="120" width="320" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="limit" value="Лимит 3 ТБ/ВМ&#xa;Нужно горизонтальное масштабирование&#xa;Минимум: 3 data-ВМ × 3 ТБ = 9 ТБ / ЦОД" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="120" width="380" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc1" value="DC1 (Primary)&#xa;• CDR ingestion&#xa;• Основной read/write&#xa;• ClickHouse shard/replica" style="swimlane;rounded=1;whiteSpace=wrap;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="200" y="360" width="360" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc2" value="DC2 (Secondary)&#xa;• Квази-синхронная реплика&#xa;• Приоритетный failover&#xa;• ClickHouse shard/replica" style="swimlane;rounded=1;whiteSpace=wrap;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="680" y="360" width="360" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc3" value="DC3 (DR)&#xa;• Асинхронная реплика&#xa;• Аварийное восстановление&#xa;• Долгий горизонт хранения CDR" style="swimlane;rounded=1;whiteSpace=wrap;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="360" width="360" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ingestion" value="Ingestion&#xa;Kafka / RabbitMQ&#xa;CDR producer → CDR DB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="600" y="660" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api" value="Query API / Reporting&#xa;Поиск и выгрузка CDR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="900" y="660" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sla" value="SLA&#xa;RPO: DC1→DC2 0–5 мин; DC1→DC3 15–60 мин&#xa;RTO: DC2 15–30 мин; DC3 1–4 ч" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="600" y="790" width="560" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="requirements" target="calc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="calc" target="retention"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="retention" target="limit"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e4" value="quasi-sync" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#1a73e8;fontColor=#1a73e8;" edge="1" parent="1" source="dc1" target="dc2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" value="async" style="endArrow=block;html=1;strokeWidth=2;strokeColor=#6a1b9a;fontColor=#6a1b9a;" edge="1" parent="1" source="dc2" target="dc3"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e6" style="endArrow=block;html=1;dashed=1;strokeWidth=2;" edge="1" parent="1" source="ingestion" target="dc1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;dashed=1;strokeWidth=2;" edge="1" parent="1" source="dc1" target="api"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="api" target="sla"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
